@@ -36,7 +36,7 @@ Because this application modifies protected operating system paths and restarts 
 """
 
 # Save to file
-file_name = "VHOST_AUTOMATION_README.md"
+file_name = "README.md"
 with open(file_name, "w", encoding="utf-8") as f:
     f.write(readme_v2_content.strip())
 
