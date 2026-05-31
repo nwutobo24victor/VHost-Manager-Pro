@@ -1,49 +1,43 @@
+import os
+
+# Define the precise, scoped README content focused exactly on the project scope
+readme_v2_content = """# Automated Virtual Host Engine for XAMPP
+
+A localized automation tool engineered to streamline web development workflows on Windows. This project provides a web-based dashboard that automates the creation of clean, production-like URLs (pretty URLs) for local projects, eliminating manual configuration file updates and XAMPP control panel restarts.
+
 ---
 
-## Technical Code Breakdown
+## 📋 Project Scope & Objectives
 
-Below is the robust, production-safe blueprint utilized to handle the web server restart sequence smoothly.
+The sole purpose of this application is to automate a tedious three-step local development workflow into a single click:
 
-```php
-<?php
+1. **Local DNS Mapping:** Automatically opens and appends the custom domain name mapped to the local IP address (`127.0.0.1`) inside the protected Windows `hosts` file.
+2. **Virtual Host Configuration:** Appends the required `<VirtualHost>` blocks, matching the pretty URL to the project's absolute path, inside Apache's `httpd-vhosts.conf` file.
+3. **Asynchronous Server Hot-Swap:** Safely restarts the Apache web server behind the scenes to apply changes instantly without crashing the web page or freezing the browser.
 
-/**
- * Automated Virtual Host Configurator & Asynchronous Server Restarter
- * * @package    XAMPP_Vhost_Automation
- * @author     Systems Programmer / Developer
- */
+---
 
-// --- SECTION 1: SYSTEM ENVIRONMENT PREPARATION ---
-// Ensure execution constraints are handled. (Optional: increase max_execution_time if needed)
-set_time_limit(30);
+## ⚡ The Core Problem Solved
 
-$output = [];
-$retval = null;
+When a web page tries to restart the very server it is running on, a process deadlock occurs. Under Windows (`mpm_winnt`), a standard restart command causes Apache child threads to lose track of their parent process. This results in a server crash and leaves background "zombie" processes trapping network ports 80 and 443.
 
-// --- SECTION 2: PROCESS TERMINATION & PORT CLEANUP ---
-// We issue a forced (/f) termination on the image name (/im) 'httpd.exe'.
-// This eliminates the Apache parent and zombie child threads simultaneously,
-// preventing the 'AH02965: Child: Unable to retrieve my generation' block.
-exec('taskkill /f /im httpd.exe 2>&1', $output, $retval);
+This project solves that bottleneck by changing the server lifecycle workflow:
+* **Forced Eviction:** It completely wipes out all active and hung Apache instances at the operating system level, ensuring network ports are instantly freed.
+* **Asynchronous Detachment:** Instead of letting the script wait for a response, it triggers Apache to launch independently in the background, cutting the connection to the web page immediately so the automation completes smoothly.
 
-// --- SECTION 3: OS THREAD COOLDOWN ---
-// Windows takes a brief window of time to release network sockets (Ports 80, 443).
-// Waiting 2 seconds prevents bind errors when the new Apache instance spins up.
-sleep(2);
+---
 
-// --- SECTION 4: ASYNCHRONOUS DETACHED BACKGROUND LAUNCH ---
-// - 'start /B': Windows command to execute an application in the background without spawning a new CMD window.
-// - '/D': Specifies the working directory for the executable context.
-// - 'popen()' + 'pclose()': Opens a pipe to a process executed in the background. 
-//   By immediate closing the pipe pointer, PHP hands off control to the OS kernel 
-//   and finishes its script execution before Apache intercepts it.
-$apachePath = 'C:\\xampp\\apache\\bin';
-$command = 'start /B /D "' . $apachePath . '" httpd.exe';
+## ⚙️ Requirements & System Privileges
 
-pclose(popen($command, "r"));
+Because this application modifies protected operating system paths and restarts system binaries, it operates under strict environmental rules:
 
-// --- SECTION 5: RESPONSE DELIVERY ---
-echo json_encode([
-    'status' => 'success',
-    'message' => 'Virtual Host generated. Domain mapped. Apache restart sequence dispatched successfully.'
-]);
+* **Administrative Privileges:** The XAMPP Control Panel or Apache service **must** be executed using **"Run as Administrator"** to allow file access to the Windows `hosts` file.
+* **Local Loopback Security:** The application is locked strictly to `127.0.0.1` (localhost), ensuring configuration endpoints are never exposed to external networks.
+"""
+
+# Save to file
+file_name = "VHOST_AUTOMATION_README.md"
+with open(file_name, "w", encoding="utf-8") as f:
+    f.write(readme_v2_content.strip())
+
+print(f"File successfully created: {file_name}")
